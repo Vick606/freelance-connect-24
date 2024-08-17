@@ -1,21 +1,50 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import prisma from '../../src/lib/prisma'
+import { getSession } from 'next-auth/react'
 
-type Project = {
-  id: number
-  title: string
-  description: string
-}
-
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Project[]>
+  res: NextApiResponse
 ) {
-  // This is placeholder data. In a real application, you would fetch this from a database.
-  const projects: Project[] = [
-    { id: 1, title: "Web Design Project", description: "Create a responsive website for a local business" },
-    { id: 2, title: "Mobile App Development", description: "Develop a cross-platform mobile app for task management" },
-    { id: 3, title: "Database Optimization", description: "Optimize database queries for improved performance" },
-  ]
+  const session = await getSession({ req })
 
-  res.status(200).json(projects)
+  if (!session) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  if (req.method === 'GET') {
+    try {
+      const projects = await prisma.project.findMany({
+        include: {
+          owner: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      })
+      res.status(200).json(projects)
+    } catch (error) {
+      res.status(500).json({ error: 'Error fetching projects' })
+    }
+  } else if (req.method === 'POST') {
+    const { title, description, budget } = req.body
+    try {
+      const project = await prisma.project.create({
+        data: {
+          title,
+          description,
+          budget: parseFloat(budget),
+          ownerId: session.user.id,
+        },
+      })
+      res.status(201).json(project)
+    } catch (error) {
+      res.status(500).json({ error: 'Error creating project' })
+    }
+  } else {
+    res.setHeader('Allow', ['GET', 'POST'])
+    res.status(405).end(`Method ${req.method} Not Allowed`)
+  }
 }
