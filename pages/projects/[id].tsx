@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import BidForm from '../../src/components/bids/BidForm'
+import ReviewForm from '../../src/components/reviews/ReviewForm'
 
 type Project = {
   id: number
@@ -21,6 +22,15 @@ type Bid = {
   amount: number
   proposal: string
   user: {
+    name: string
+  }
+}
+
+type Review = {
+  id: number
+  content: string
+  rating: number
+  reviewer: {
     name: string
   }
 }
@@ -73,6 +83,25 @@ export default function ProjectDetails() {
           <BidForm projectId={project.id} />
         </div>
       )}
+
+{project.status === 'COMPLETED' && (
+  <div className="mt-8">
+    <h2 className="text-2xl font-bold mb-4">Project Review</h2>
+    {project.review ? (
+      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8">
+        <p className="text-gray-700 text-base mb-2">{project.review.content}</p>
+        <p className="text-gray-700 text-base mb-2">Rating: {project.review.rating}/5</p>
+        <p className="text-gray-500 text-sm">
+          Reviewed by: {project.review.reviewer.name}
+        </p>
+      </div>
+    ) : session?.user?.id === project.owner.id ? (
+      <ReviewForm projectId={project.id} revieweeId={project.assignedTo.id} />
+    ) : (
+      <p>No review yet.</p>
+    )}
+  </div>
+)}
     </div>
   )
 }
