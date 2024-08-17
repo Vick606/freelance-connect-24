@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@prisma/client": "^5.18.0",
     "@tanstack/react-query": "^5.51.23",
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.4",
@@ -26,6 +27,7 @@
     "@types/axios": "^0.9.36",
     "@types/node": "^22.4.0",
     "@types/react": "^18.3.3",
+    "prisma": "^5.18.0",
     "typescript": "^5.5.4"
   }
 }
