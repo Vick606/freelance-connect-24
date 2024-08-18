@@ -3,8 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 
 type ReviewFormProps = {
-  projectId: number
-  revieweeId: number
+  projectId: string
+  revieweeId: string
 }
 
 export default function ReviewForm({ projectId, revieweeId }: ReviewFormProps) {
@@ -14,9 +14,9 @@ export default function ReviewForm({ projectId, revieweeId }: ReviewFormProps) {
 
   const createReviewMutation = useMutation({
     mutationFn: (newReview: { content: string; rating: number }) =>
-      axios.post(`/api/projects/${projectId}/reviews`, { ...newReview, revieweeId }),
+      axios.post(`/api/reviews`, { ...newReview, projectId, revieweeId }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['project', projectId])
+      queryClient.invalidateQueries(['reviews', projectId])
       setContent('')
       setRating(5)
     },
@@ -28,7 +28,7 @@ export default function ReviewForm({ projectId, revieweeId }: ReviewFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4">
+    <form onSubmit={handleSubmit} className="mt-4 bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
       <textarea
         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
         placeholder="Write your review"
@@ -52,6 +52,11 @@ export default function ReviewForm({ projectId, revieweeId }: ReviewFormProps) {
           </select>
         </label>
       </div>
+      {createReviewMutation.isError && (
+        <div className="text-red-500 mb-4">
+          Error submitting review: {createReviewMutation.error.message}
+        </div>
+      )}
       <button
         type="submit"
         className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
