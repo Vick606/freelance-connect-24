@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 
 type BidFormProps = {
-  projectId: number
+  projectId: string
 }
 
 export default function BidForm({ projectId }: BidFormProps) {
@@ -13,9 +13,9 @@ export default function BidForm({ projectId }: BidFormProps) {
 
   const bidMutation = useMutation({
     mutationFn: (newBid: { amount: number; proposal: string }) =>
-      axios.post(`/api/projects/${projectId}/bids`, newBid),
+      axios.post(`/api/bids`, { ...newBid, projectId }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['project', projectId])
+      queryClient.invalidateQueries(['bids', projectId])
       setAmount('')
       setProposal('')
     },
@@ -55,6 +55,11 @@ export default function BidForm({ projectId }: BidFormProps) {
           required
         />
       </div>
+      {bidMutation.isError && (
+        <div className="text-red-500 mb-4">
+          Error submitting bid: {bidMutation.error.message}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
